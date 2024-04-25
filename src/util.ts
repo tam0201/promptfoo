@@ -47,6 +47,7 @@ import type {
   CsvRow,
 } from './types';
 import { writeCsvToGoogleSheet } from './googleSheets';
+import { re } from 'mathjs';
 
 let globalConfigCache: any = null;
 
@@ -367,6 +368,28 @@ ${output.text}
 ${gradingResultText}`.trim();
   };
 
+  const outputToGradingScore = (output: EvaluateTableOutput) => {
+    const passFailText = output.pass ? '[PASS]' : '[FAIL]';
+    const namedScoresText = Object.entries(output.namedScores)
+      .map(([name, value]) => `${name}: ${value.toFixed(2)}`)
+      .join(', ');
+    const scoreText =
+      namedScoresText.length > 0
+        ? `(${output.score.toFixed(2)}, ${namedScoresText})`
+        : `(${output.score.toFixed(2)})`;
+    const fullGradingResultText = output.gradingResult
+      ? output.gradingResult.componentResults?.map((componentResult) => {
+        const { assertion, score } = componentResult;
+        return `${assertion?.type}: ${score}`;
+      }).join('\n')
+    : '';
+    return `${passFailText} ${scoreText}
+
+${output.text}
+---
+${fullGradingResultText}`.trim();
+  };
+
   if (outputPath.match(/^https:\/\/docs\.google\.com\/spreadsheets\//)) {
     const rows = results.table.body.map((row) => {
       const csvRow: CsvRow = {};
@@ -374,7 +397,7 @@ ${gradingResultText}`.trim();
         csvRow[varName] = row.vars[index];
       });
       results.table.head.prompts.forEach((prompt, index) => {
-        csvRow[prompt.display] = outputToSimpleString(row.outputs[index]);
+        csvRow[prompt.display] = outputToGradingScore(row.outputs[index]);
       });
       return csvRow;
     });
