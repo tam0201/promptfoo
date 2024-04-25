@@ -192,6 +192,7 @@ export async function renderPrompt(
     return langfuseResult;
   }
 
+
   // Render prompt
   try {
     if (process.env.PROMPTFOO_DISABLE_JSON_AUTOESCAPE) {
