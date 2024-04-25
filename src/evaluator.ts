@@ -191,6 +191,12 @@ export async function renderPrompt(
     const langfuseResult = await getPrompt(helper, Number(version));
     return langfuseResult;
   }
+  if (prompt.raw.startsWith('langfuse://')) {
+    const langfusePrompt = prompt.raw.slice('langfuse://'.length);
+    const [helper, version] = langfusePrompt.split(':');
+    const langfuseResult = await getLangfusePrompt(helper, Number(version));
+    return langfuseResult;
+  }
 
 
   // Render prompt
