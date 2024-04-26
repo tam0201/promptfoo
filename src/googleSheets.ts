@@ -83,7 +83,25 @@ export async function writeCsvToGoogleSheet(rows: CsvRow[], url: string): Promis
     throw new Error(`Invalid Google Sheets URL: ${url}`);
   }
   const spreadsheetId = match[1];
-  const range = 'A1:ZZZ';
+  
+  // Create new tab in the existing spreadsheet
+  const now = new Date();
+  const tabName = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      requests: [{
+        addSheet: {
+          properties: {
+            title: tabName,
+          },
+        },
+      }],
+    },
+    auth,
+  });
+  // Extract the new tab ID
+  const range = `${tabName}!A1:ZZZ`;
 
   // Extract headers from the first row
   const headers = Object.keys(rows[0]);
